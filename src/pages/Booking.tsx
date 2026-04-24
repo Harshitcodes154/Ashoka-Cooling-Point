@@ -29,8 +29,31 @@ const Booking = () => {
   const handleNext = () => setStep(s => Math.min(s + 1, 4));
   const handleBack = () => setStep(s => Math.max(s - 1, 1));
 
+  // Helper function to validate if current step is complete
+  const isStepComplete = () => {
+    switch (step) {
+      case 1:
+        return !!formData.category;
+      case 2:
+        return !!formData.issue.trim();
+      case 3:
+        return !!formData.date && !!formData.timeSlot;
+      case 4:
+        return !!formData.address.trim() && formData.phone.length >= 10;
+      default:
+        return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Final validation before submission
+    if (!isStepComplete()) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
     if (!user) {
       toast.error('Please log in to book a service');
       navigate('/login');
@@ -72,10 +95,18 @@ const Booking = () => {
         <div className="bg-slate-50 px-8 py-6 border-b border-slate-200">
           <div className="flex justify-between items-center relative">
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 -z-10"></div>
-            <div className={`absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-blue-600 -z-10 transition-all duration-300`} style={{ width: `${((step - 1) / 3) * 100}%` }}></div>
+            <div 
+              className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-blue-600 -z-10 transition-all duration-300" 
+              style={{ width: `${((step - 1) / 3) * 100}%` }}
+            ></div>
             
             {[1, 2, 3, 4].map((num) => (
-              <div key={num} className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${step >= num ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+              <div 
+                key={num} 
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
+                  step >= num ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'
+                }`}
+              >
                 {step > num ? <CheckCircle2 className="w-6 h-6" /> : num}
               </div>
             ))}
@@ -95,11 +126,27 @@ const Booking = () => {
             {/* Step 1: Appliance */}
             {step === 1 && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2"><PenTool className="text-blue-600" /> Select Appliance</h2>
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                  <PenTool className="text-blue-600" /> Select Appliance
+                </h2>
                 <div className="grid grid-cols-2 gap-4">
                   {applianceCategories.map(cat => (
-                    <label key={cat} className={`cursor-pointer border-2 rounded-xl p-4 text-center font-medium transition-all ${formData.category === cat ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 hover:border-blue-300 text-slate-700'}`}>
-                      <input type="radio" name="category" value={cat} className="hidden" onChange={(e) => setFormData({...formData, category: e.target.value})} checked={formData.category === cat} />
+                    <label 
+                      key={cat} 
+                      className={`cursor-pointer border-2 rounded-xl p-4 text-center font-medium transition-all ${
+                        formData.category === cat 
+                          ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                          : 'border-slate-200 hover:border-blue-300 text-slate-700'
+                      }`}
+                    >
+                      <input 
+                        type="radio" 
+                        name="category" 
+                        value={cat} 
+                        className="hidden" 
+                        onChange={(e) => setFormData({...formData, category: e.target.value})} 
+                        checked={formData.category === cat} 
+                      />
                       {cat}
                     </label>
                   ))}
@@ -126,7 +173,9 @@ const Booking = () => {
             {/* Step 3: Schedule */}
             {step === 3 && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2"><Calendar className="text-blue-600" /> Choose Date & Time</h2>
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                  <Calendar className="text-blue-600" /> Choose Date & Time
+                </h2>
                 
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-slate-700 mb-2">Select Date</label>
@@ -141,11 +190,27 @@ const Booking = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2"><Clock className="w-4 h-4"/> Select Time Slot</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4"/> Select Time Slot
+                  </label>
                   <div className="grid grid-cols-2 gap-3">
                     {timeSlots.map(slot => (
-                      <label key={slot} className={`cursor-pointer border rounded-lg p-3 text-center text-sm font-medium transition-all ${formData.timeSlot === slot ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 hover:border-blue-300 text-slate-700'}`}>
-                        <input type="radio" name="timeSlot" value={slot} className="hidden" onChange={(e) => setFormData({...formData, timeSlot: e.target.value})} checked={formData.timeSlot === slot} />
+                      <label 
+                        key={slot} 
+                        className={`cursor-pointer border rounded-lg p-3 text-center text-sm font-medium transition-all ${
+                          formData.timeSlot === slot 
+                            ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                            : 'border-slate-200 hover:border-blue-300 text-slate-700'
+                        }`}
+                      >
+                        <input 
+                          type="radio" 
+                          name="timeSlot" 
+                          value={slot} 
+                          className="hidden" 
+                          onChange={(e) => setFormData({...formData, timeSlot: e.target.value})} 
+                          checked={formData.timeSlot === slot} 
+                        />
                         {slot}
                       </label>
                     ))}
@@ -157,7 +222,9 @@ const Booking = () => {
             {/* Step 4: Address */}
             {step === 4 && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2"><MapPin className="text-blue-600" /> Contact & Address</h2>
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                  <MapPin className="text-blue-600" /> Contact & Address
+                </h2>
                 
                 <div className="space-y-4">
                   <div>
@@ -195,14 +262,18 @@ const Booking = () => {
             {/* Navigation Buttons */}
             <div className="mt-10 flex justify-between pt-6 border-t border-slate-100">
               {step > 1 ? (
-                <button type="button" onClick={handleBack} className="px-6 py-3 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-colors">
+                <button 
+                  type="button" 
+                  onClick={handleBack} 
+                  className="px-6 py-3 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+                >
                   Back
                 </button>
               ) : <div></div>}
               
               <button 
                 type="submit" 
-                disabled={(step === 1 && !formData.category) || isSubmitting}
+                disabled={!isStepComplete() || isSubmitting}
                 className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {step === 4 ? (isSubmitting ? 'Confirming...' : 'Confirm Booking') : 'Continue'}
